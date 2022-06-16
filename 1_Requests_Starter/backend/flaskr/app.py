@@ -99,19 +99,29 @@ def create_app(test_config=None):
         new_title = body.get("title", None)
         new_author = body.get("author", None)
         new_rating = body.get("rating", None)
-
+        search = body.get("search", None)
         try:
-            book = Book(title=new_title, author=new_author, rating=new_rating)
-            book.insert()
+            if search:
+                selection = Book.query.order_by(Book.id).filter(
+                    Book.title.ilike("%{}%".format(search)))
+                return jsonify({
+                    "success": True,
+                    "books": paginated_pages(request),
+                    "total_books": len(selection.all())
+                })
+
+            else:
+                book = Book(title=new_title, author=new_author,
+                            rating=new_rating)
+                book.insert()
+                return jsonify({
+                    "success": True,
+                    "created": book.id,
+                    "books": paginated_pages(request),
+                    "total_books": len(Book.query.all())
+                })
         except:
             abort(422)
-
-        return jsonify({
-            "success": True,
-            "created": book.id,
-            "books": paginated_pages(request),
-            "total_books": len(Book.query.all())
-        })
 
     @app.errorhandler(400)
     def bad_request(error):

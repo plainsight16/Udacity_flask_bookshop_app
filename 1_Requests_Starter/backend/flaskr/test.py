@@ -51,6 +51,24 @@ class bookshelf_testCase(unittest.TestCase):
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "Bad Request")
 
+    def test_search_book(self):
+        res = create_app().test_client().post(
+            "/books", json={"search": "Ricochet"})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["total_books"])
+        self.assertEqual(len(data["books"]), 8)
+
+    def test_404_search_book_without_results(self):
+        res = create_app().test_client().post(
+            "/books", json={"search": "Apples"})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertEqual(data["total_books"], 0)
+        self.assertEqual(len(data["books"]), 8)
+
     # def test_delete_book(self):
     #     res = create_app().test_client().delete('/books/6')
     #     data = json.loads(res.data)
